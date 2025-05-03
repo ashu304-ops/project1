@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learning-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: q-learning
+  template:
+    metadata:
+      labels:
+        app: q-learning
+    spec:
+      containers:
+        - name: damper
+          image: ashu304/damping_optimization.py  # Replace with your Docker Hub image
+          imagePullPolicy: Always

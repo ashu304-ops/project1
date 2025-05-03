@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dind
+spec:
+  containers:
+  - name: dind
+    image: docker:dind
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - name: docker-graph-storage
+      mountPath: /var/lib/docker
+  restartPolicy: Never
+  volumes:
+  - name: docker-graph-storage
+    emptyDir: {}

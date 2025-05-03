@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: q-learning-service
+spec:
+  selector:
+    app: q-learning
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000  # You can change this if your app listens on a different port
+  type: NodePort  # Use NodePort or ClusterIP if you don't need external access

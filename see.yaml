@@ -1,0 +1,6 @@
+# save as deployment.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: example
+
