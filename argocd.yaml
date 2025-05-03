@@ -7,7 +7,7 @@ spec:
   project: default
 
   source:
-    repoURL: 'https://github.com/ashu304-ops/dampersproject.git'
+    repoURL: 'https://github.com/ashu304-ops/project1.git'
     targetRevision: HEAD
     path: .
     # You can specify a subfolder if your manifests are not in the root
