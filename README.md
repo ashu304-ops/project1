@@ -1,5 +1,5 @@
 # project1
-ashu
+
 Deployment of Reinforcement agent (mechanical damper design) using docker,kubernetes and argocd 
 Imagine you're on a swing at the playground. When you stop pumping your legs, the swing slows down and eventually stops, right? That slowing down happens because something is resisting the swinging motion. 
 A mechanical damper is like that invisible helper that makes things slow down or stop when they’re moving too fast. It doesn’t stop things all at once — it just smooths out the motion, kind of like how your swing gently comes to a stop. 
