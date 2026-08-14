@@ -1,4 +1,4 @@
-# README.md — Embedded MR Fluid Suspension Controller
+Embedded MR Fluid Suspension Controller
 
 ## Project Overview
 
