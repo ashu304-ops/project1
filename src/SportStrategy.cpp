@@ -5,9 +5,12 @@ DampingCommand SportStrategy::calculate(
 {
     constexpr float forcePerG = 100.0f;
     constexpr float forcePerAmp = 1000.0f;
+    constexpr float sportMultiplier = 0.8f;
 
     const float force =
-        sensorData.accelerationG * forcePerG;
+        sensorData.accelerationG *
+        forcePerG *
+        sportMultiplier;
 
     const float current =
         force / forcePerAmp;

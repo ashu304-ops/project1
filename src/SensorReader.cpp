@@ -2,5 +2,5 @@
 
 SensorData SensorReader::read()
 {
-    return SensorData{5.2f};
+    return SensorData{2.0f};
 }

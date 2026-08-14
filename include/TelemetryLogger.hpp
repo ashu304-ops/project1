@@ -1,11 +1,11 @@
 #pragma once
 
-#include "TelemetryRecord.hpp"
+#include "ITelemetryLogger.hpp"
 
-class TelemetryLogger
+class TelemetryLogger : public ITelemetryLogger
 {
 public:
-    void record(const TelemetryRecord& record);
+    void record(const TelemetryRecord& record) override;
 
     const TelemetryRecord& lastRecord() const;
 

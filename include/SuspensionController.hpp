@@ -1,21 +1,24 @@
 #pragma once
 
-#include "SensorReader.hpp"
+#include "IAccelerometer.hpp"
 #include "DampingStrategy.hpp"
-#include "CoilController.hpp"
-#include "TelemetryLogger.hpp"
+#include "ICoilDriver.hpp"
+#include "ITelemetryLogger.hpp"
 
 class SuspensionController
 {
 public:
-    explicit SuspensionController(
-        const DampingStrategy& dampingStrategy);
+    SuspensionController(
+        IAccelerometer& sensor,
+        DampingStrategy& dampingStrategy,
+        ICoilDriver& coilController,
+        ITelemetryLogger& telemetryLogger);
 
     void runControlCycle();
 
 private:
-    SensorReader sensorReader_;
-    const DampingStrategy& dampingStrategy_;
-    CoilController coilController_;
-    TelemetryLogger telemetryLogger_;
+    IAccelerometer& sensor_;
+    DampingStrategy& dampingStrategy_;
+    ICoilDriver& coilController_;
+    ITelemetryLogger& telemetryLogger_;
 };

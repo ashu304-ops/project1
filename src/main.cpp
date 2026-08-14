@@ -1,18 +1,27 @@
 #include <iostream>
 
 #include "SuspensionController.hpp"
-#include "SnowStrategy.hpp"
-using namespace  std;
+#include "SensorReader.hpp"
+#include "DampingCalculator.hpp"
+#include "CoilController.hpp"
+#include "TelemetryLogger.hpp"
+
 int main()
 {
-    SnowStrategy snowStrategy;
+    SensorReader sensorReader;
+    DampingCalculator dampingCalculator;
+    CoilController coilController;
+    TelemetryLogger telemetryLogger;
 
     SuspensionController suspensionController(
-        snowStrategy);
+        sensorReader,
+        dampingCalculator,
+        coilController,
+        telemetryLogger);
 
     suspensionController.runControlCycle();
 
-    cout << "Snow control cycle completed.\n";
+    std::cout << "Suspension control cycle completed.\n";
 
     return 0;
 }

@@ -1,14 +1,21 @@
 #include "SuspensionController.hpp"
 
-SuspensionController::SuspensionController(const DampingStrategy& dampingStrategy):dampingStrategy_(dampingStrategy)//class variable intialization 
+SuspensionController::SuspensionController(
+    IAccelerometer& sensor,
+    DampingStrategy& dampingStrategy,
+    ICoilDriver& coilController,
+    ITelemetryLogger& telemetryLogger)
+    : sensor_(sensor),
+      dampingStrategy_(dampingStrategy),
+      coilController_(coilController),
+      telemetryLogger_(telemetryLogger)
 {
-
 }
 
 void SuspensionController::runControlCycle()
 {
     const SensorData sensorData =
-        sensorReader_.read();
+        sensor_.read();
 
     const DampingCommand command =
         dampingStrategy_.calculate(sensorData);

@@ -1,16 +1,14 @@
 #pragma once
 
-#include "DampingCommand.hpp"
+#include "ICoilDriver.hpp"
 
-class CoilController
+class CoilController : public ICoilDriver
 {
 public:
-    void apply(const DampingCommand& command);
+    void apply(const DampingCommand& command) override;
 
-    float current() const;
+    float current() const override;
 
 private:
-    static constexpr float maximumCurrentAmps = 3.0f;
-
     float currentAmps_{0.0f};
 };

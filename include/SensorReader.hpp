@@ -1,9 +1,9 @@
 #pragma once
 
-#include "SensorData.hpp"
+#include "IAccelerometer.hpp"
 
-class SensorReader
+class SensorReader : public IAccelerometer
 {
 public:
-    SensorData read();
+    SensorData read() override;
 };
