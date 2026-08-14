@@ -1,249 +1,223 @@
+# README.md — Embedded MR Fluid Suspension Controller
 
+## Project Overview
 
+This project teaches professional C++ and embedded-engineering thinking through a simplified MR-fluid suspension controller.
 
-
-````markdown
-# MR Suspension Controller — SRP Demonstration
-
-A small C++17 project demonstrating the **Single Responsibility Principle (SRP)** using an example of an MR-fluid suspension controller.
-
-The project models a simplified embedded suspension system that:
-
-1. Reads accelerometer data.
-2. Calculates the required damping.
-3. Controls the MR-fluid coil current.
-4. Records telemetry.
-5. Coordinates the complete control cycle.
-
-The main goal is not to simulate real vehicle suspension physics. The goal is to demonstrate **clean C++ architecture, separation of responsibilities, object ownership, and testability**.
-
----
-
-## 1. Engineering Problem
-
-A prototype suspension controller might initially put everything into one class:
+The controller receives road-bump data, calculates damping behavior, safely controls an MR-fluid coil, and records telemetry.
 
 ```text
-SuspensionSystem
- ├── Read sensor
- ├── Calculate damping
- ├── Control coil
- └── Log telemetry
-````
-
-This approach works for a small prototype, but the class now has multiple reasons to change.
-
-For example:
-
-* The accelerometer hardware changes.
-* The damping equation changes.
-* The coil driver changes.
-* The current safety limit changes.
-* The telemetry format changes.
-
-These changes are unrelated.
-
-A professional design separates these responsibilities.
-
----
-
-# 2. SRP — Single Responsibility Principle
-
-The principle can be summarized as:
-
-> A class should have one coherent responsibility and one primary reason to change.
-
-This does **not** mean:
-
-> Every class must contain only one function.
-
-Instead, each class should represent one meaningful responsibility.
-
-In this project:
-
-```text
+Accelerometer
+      |
+      v
 SensorReader
-    ↓
-Reads sensor information
-
-DampingCalculator
-    ↓
-Calculates damping requirements
-
-CoilController
-    ↓
-Safely controls coil current
-
-TelemetryLogger
-    ↓
-Records telemetry
-
+      |
+      v
 SuspensionController
-    ↓
-Coordinates the complete sequence
+      |
+      +--> DampingCalculator
+      |
+      +--> CoilDriver
+      |
+      +--> TelemetryLogger
 ```
 
----
+The project is intentionally small.
 
-# 3. Project Structure
+It does not include:
+
+- Databases.
+- Networking.
+- Cloud services.
+- Microservices.
+- Complex frameworks.
+- Vehicle communication protocols.
+- Production high-voltage hardware.
+
+The purpose is to learn C++ fundamentals, embedded design, testing, memory, performance, and engineering judgment.
+
+***
+
+## System Behavior
+
+A simplified control cycle is:
 
 ```text
-MR_Suspension/
-│
-├── include/
-│   ├── CoilController.hpp
-│   ├── DampingCalculator.hpp
-│   ├── DampingCommand.hpp
-│   ├── SensorData.hpp
-│   ├── SensorReader.hpp
-│   ├── SuspensionController.hpp
-│   ├── TelemetryLogger.hpp
-│   └── TelemetryRecord.hpp
-│
-├── src/
-│   ├── CoilController.cpp
-│   ├── DampingCalculator.cpp
-│   ├── main.cpp
-│   ├── SensorReader.cpp
-│   ├── SuspensionController.cpp
-│   └── TelemetryLogger.cpp
-│
-├── tests/
-│
-└── README.md
+1. Read acceleration from the road sensor.
+2. Validate the sensor value.
+3. Estimate bump intensity.
+4. Select the driving mode.
+5. Calculate required damping.
+6. Convert damping into coil current.
+7. Apply safe current limits.
+8. Monitor temperature and actuator status.
+9. Record telemetry.
+10. Enter a safe state if a critical failure occurs.
 ```
 
----
-
-# 4. Header and Source File Organization
-
-The project follows a common C++ convention:
+Example:
 
 ```text
-.hpp
- ↓
-Declaration / interface
-
-.cpp
- ↓
-Implementation
+Acceleration: 5.2 g
+Driving mode: Sport
+Requested current: 2.4 A
+Coil temperature: 80 °C
+Result: Apply current and log telemetry
 ```
 
-For example:
+If the coil is overheated:
 
 ```text
-DampingCalculator.hpp
-        ↓
-declares DampingCalculator
-
-DampingCalculator.cpp
-        ↓
-implements DampingCalculator
+Acceleration: 5.2 g
+Requested current: 2.4 A
+Coil temperature: 150 °C
+Result: Disable or reduce current and report an error
 ```
 
-This keeps interfaces separate from implementation details.
+***
 
----
+## Learning Philosophy
 
-# 5. Data Structures
+The goal is not to memorize C++ syntax.
 
-## SensorData
-
-File:
+The goal is to develop this engineering chain:
 
 ```text
-include/SensorData.hpp
+Real problem
+    ->
+Why the problem matters
+    ->
+Bad design
+    ->
+Failure of the bad design
+    ->
+Better design
+    ->
+C++ feature
+    ->
+Memory behavior
+    ->
+Performance
+    ->
+Concurrency
+    ->
+Testing
+    ->
+Production usage
 ```
+
+For each topic, we examine:
+
+- Why an engineer needs the concept.
+- What a naïve implementation looks like.
+- How requirements make the naïve design difficult.
+- How a better design improves the system.
+- What happens in memory.
+- How the design affects performance.
+- How it can be tested without real hardware.
+- How to explain the choice in an interview.
+
+***
+
+## Hardware Model
+
+The project uses a simple embedded hardware model.
+
+### Accelerometer
+
+Measures suspension movement or road impact.
+
+Example value:
+
+```cpp
+5.2f
+```
+
+This may represent acceleration in units of \(g\).
+
+### MR-Fluid Coil
+
+Receives electrical current.
+
+Higher current increases the magnetic field, causing the MR fluid to become more resistant to movement.
+
+Example:
+
+```text
+0.5 A -> soft response
+1.5 A -> medium response
+2.5 A -> firm response
+```
+
+### Temperature Sensor
+
+Measures coil temperature.
+
+The controller must reduce or disable current if the coil becomes too hot.
+
+### Telemetry Storage
+
+Stores values such as:
+
+```text
+Timestamp
+Acceleration
+Bump intensity
+Driving mode
+Requested current
+Applied current
+Temperature
+Error status
+```
+
+A real implementation might use internal flash, EEPROM, or a ring buffer.
+
+***
+
+## Initial Data Types
+
+The project uses small structures to carry related data.
 
 ```cpp
 struct SensorData
 {
     float accelerationG{0.0f};
+    float temperatureCelsius{0.0f};
 };
-```
 
-This structure represents accelerometer data.
-
-It only stores data.
-
-It does not:
-
-* Read hardware.
-* Calculate damping.
-* Control the coil.
-* Log telemetry.
-
-This makes it a simple value object.
-
----
-
-## DampingCommand
-
-File:
-
-```text
-include/DampingCommand.hpp
-```
-
-```cpp
 struct DampingCommand
 {
     float forceNewton{0.0f};
-    float coilCurrentAmps{0.0f};
+    float requestedCurrentAmps{0.0f};
 };
-```
 
-This represents the output of the damping calculation.
-
-It contains:
-
-```text
-forceNewton
-    ↓
-Required damping force
-
-coilCurrentAmps
-    ↓
-Requested coil current
-```
-
----
-
-## TelemetryRecord
-
-File:
-
-```text
-include/TelemetryRecord.hpp
-```
-
-```cpp
 struct TelemetryRecord
 {
     float accelerationG{0.0f};
     float forceNewton{0.0f};
-    float coilCurrentAmps{0.0f};
+    float requestedCurrentAmps{0.0f};
+    float appliedCurrentAmps{0.0f};
+    float temperatureCelsius{0.0f};
 };
 ```
 
-This contains the information that should be recorded by the telemetry system.
+These structures are data containers.
 
----
+They do not read hardware, calculate formulas, or write to storage.
 
-# 6. SensorReader
+***
 
-Files:
+## Main Components
 
-```text
-include/SensorReader.hpp
-src/SensorReader.cpp
-```
+### SensorReader
 
 Responsibility:
 
-> Obtain sensor information.
+```text
+Read sensor hardware and produce validated sensor data.
+```
 
-Interface:
+Possible operations:
 
 ```cpp
 class SensorReader
@@ -253,919 +227,879 @@ public:
 };
 ```
 
-Implementation:
+It should handle sensor-specific concerns such as:
+
+- ADC reading.
+- SPI or I2C communication.
+- Timeout detection.
+- Range validation.
+- Sensor status reporting.
+
+It should not calculate damping force.
+
+***
+
+### DampingCalculator
+
+Responsibility:
+
+```text
+Convert sensor information into a damping command.
+```
+
+Possible operation:
 
 ```cpp
-SensorData SensorReader::read()
+class DampingCalculator
 {
-    return SensorData{5.2f};
-}
+public:
+    DampingCommand calculate(
+        const SensorData& sensorData
+    ) const;
+};
 ```
 
-Currently the sensor is simulated.
+It should not:
 
-The value:
+- Read hardware.
+- Set PWM registers.
+- Write telemetry.
+- Handle flash storage.
 
-```text
-5.2 G
-```
+This allows the mathematical algorithm to be tested on a normal computer.
 
-represents a simulated accelerometer reading.
+***
 
-In real embedded firmware, this class could communicate with:
-
-```text
-ADC
-SPI
-I2C
-CAN
-MEMS accelerometer
-```
-
-The important architectural point is that the rest of the system does not need to know how the sensor is physically accessed.
-
----
-
-# 7. DampingCalculator
-
-Files:
-
-```text
-include/DampingCalculator.hpp
-src/DampingCalculator.cpp
-```
+### DampingStrategy
 
 Responsibility:
 
-> Convert sensor information into a damping command.
-
-The calculation is:
-
 ```text
-force = acceleration × forcePerG
-
-current = force / forcePerAmp
+Represent one damping behavior or driving mode.
 ```
 
-The current implementation uses:
+Example interface:
 
 ```cpp
-constexpr float forcePerG = 100.0f;
-constexpr float forcePerAmp = 1000.0f;
-```
-
-For an acceleration of:
-
-```text
-5.2 G
-```
-
-the calculation becomes:
-
-```text
-force = 5.2 × 100
-      = 520 N
-
-current = 520 / 1000
-        = 0.52 A
-```
-
-The calculator does not know:
-
-* Which sensor produced the data.
-* Which coil will receive the current.
-* Where telemetry is stored.
-
-This makes it easy to test independently.
-
----
-
-# 8. CoilController
-
-Files:
-
-```text
-include/CoilController.hpp
-src/CoilController.cpp
-```
-
-Responsibility:
-
-> Safely apply the requested current to the coil.
-
-The controller defines:
-
-```cpp
-static constexpr float maximumCurrentAmps = 3.0f;
-```
-
-Therefore:
-
-```text
-Requested current = 0.52 A
-Actual current    = 0.52 A
-```
-
-But if the requested current is:
-
-```text
-10.0 A
-```
-
-the controller limits it:
-
-```text
-Requested current = 10.0 A
-Maximum current   = 3.0 A
-Actual current    = 3.0 A
-```
-
-The safety rule is therefore located in one place.
-
-Other parts of the program should not directly modify:
-
-```cpp
-currentAmps_
-```
-
-This creates a clear safety boundary around actuator control.
-
----
-
-# 9. TelemetryLogger
-
-Files:
-
-```text
-include/TelemetryLogger.hpp
-src/TelemetryLogger.cpp
-```
-
-Responsibility:
-
-> Store telemetry information.
-
-It receives:
-
-```cpp
-TelemetryRecord
-```
-
-and stores the latest record:
-
-```cpp
-TelemetryRecord lastRecord_{};
-```
-
-The logger does not:
-
-* Calculate damping.
-* Read sensors.
-* Control the coil.
-
-A real embedded implementation could later store telemetry in:
-
-```text
-RAM buffer
-Flash
-SD card
-CAN message
-UART
-Ethernet
-external logging system
-```
-
-The rest of the system would not need to implement those storage details.
-
----
-
-# 10. SuspensionController
-
-Files:
-
-```text
-include/SuspensionController.hpp
-src/SuspensionController.cpp
-```
-
-Responsibility:
-
-> Coordinate the control sequence.
-
-The controller owns:
-
-```cpp
-SensorReader sensorReader_;
-DampingCalculator dampingCalculator_;
-CoilController coilController_;
-TelemetryLogger telemetryLogger_;
-```
-
-The control cycle is:
-
-```text
-SensorReader
-     │
-     │ read()
-     ▼
-SensorData
-     │
-     ▼
-DampingCalculator
-     │
-     │ calculate()
-     ▼
-DampingCommand
-     │
-     ▼
-CoilController
-     │
-     │ apply()
-     ▼
-Actual coil current
-     │
-     ▼
-TelemetryLogger
-```
-
-The controller coordinates the sequence but does not implement the details of each operation.
-
----
-
-# 11. Main Program
-
-File:
-
-```text
-src/main.cpp
-```
-
-The application starts with:
-
-```cpp
-int main()
+class DampingStrategy
 {
-    SuspensionController suspensionController;
+public:
+    virtual float calculateCurrent(
+        float bumpIntensity
+    ) const = 0;
 
-    suspensionController.runControlCycle();
-
-    return 0;
-}
+    virtual ~DampingStrategy() = default;
+};
 ```
 
-The `main()` function therefore has very little knowledge of the internal implementation.
+Possible implementations:
 
-It simply creates the controller and asks it to execute a control cycle.
+```text
+ComfortStrategy
+SportStrategy
+TrackStrategy
+OffRoadStrategy
+```
 
----
+Each strategy applies different behavior.
 
-# 12. Object Ownership
+***
 
-The `SuspensionController` directly owns its components:
+### CoilDriver
+
+Responsibility:
+
+```text
+Safely apply current to the MR-fluid coil.
+```
+
+Possible interface:
+
+```cpp
+class ICoilDriver
+{
+public:
+    virtual CoilResult setCurrent(
+        float amps
+    ) = 0;
+
+    virtual ~ICoilDriver() = default;
+};
+```
+
+The driver should enforce:
+
+- Minimum current.
+- Maximum current.
+- Temperature protection.
+- Hardware failure handling.
+- PWM or DAC conversion.
+- Current feedback validation.
+
+The controller should not directly write coil registers.
+
+***
+
+### TelemetryLogger
+
+Responsibility:
+
+```text
+Store or transmit suspension telemetry.
+```
+
+Possible interface:
+
+```cpp
+class ITelemetryLogger
+{
+public:
+    virtual bool record(
+        const TelemetryRecord& record
+    ) = 0;
+
+    virtual ~ITelemetryLogger() = default;
+};
+```
+
+The logger should not determine damping behavior.
+
+It should record what happened.
+
+***
+
+### SuspensionController
+
+Responsibility:
+
+```text
+Coordinate the control cycle.
+```
+
+Typical sequence:
+
+```text
+Read
+    ->
+Validate
+    ->
+Calculate
+    ->
+Apply
+    ->
+Log
+```
+
+It should not contain all hardware and algorithm details.
+
+***
+
+## SOLID Principles Covered
+
+### Single Responsibility Principle
+
+Separate:
+
+```text
+Sensor reading
+Damping calculation
+Coil control
+Telemetry logging
+System coordination
+```
+
+A class should have one coherent responsibility and one primary reason to change. [github](https://github.com/fx-biocoder/solid-in-cpp)
+
+### Open/Closed Principle
+
+Add new damping behavior without repeatedly modifying a large conditional function.
+
+```text
+DampingStrategy
+    |
+    +-- ComfortStrategy
+    +-- SportStrategy
+    +-- TrackStrategy
+    +-- OffRoadStrategy
+```
+
+### Liskov Substitution Principle
+
+A derived strategy must honor the behavior expected from the base strategy.
+
+A passive shock absorber should not inherit from an interface that requires it to change damping if it cannot perform that operation.
+
+### Interface Segregation Principle
+
+Prefer focused interfaces:
+
+```text
+IAccelerometer
+ICoilDriver
+ITelemetryLogger
+IStatusDisplay
+```
+
+Do not force every device to implement every operation.
+
+### Dependency Inversion Principle
+
+The controller should depend on interfaces:
+
+```text
+SuspensionController -> ICoilDriver
+```
+
+rather than concrete hardware:
+
+```text
+SuspensionController -> PwmCoilDriver
+```
+
+This allows mock hardware during testing.
+
+***
+
+## Object-Oriented Programming Topics
+
+### Encapsulation
+
+Protect the coil’s internal state:
+
+```cpp
+class MagnetCoil
+{
+public:
+    bool setCurrent(float amps);
+
+    float current() const;
+
+private:
+    float currentAmps_{0.0f};
+};
+```
+
+Other code should not be able to do this:
+
+```cpp
+coil.currentAmps_ = 500.0f;
+```
+
+The coil object validates changes and preserves a safe state.
+
+### Inheritance
+
+Use inheritance only when the derived type genuinely satisfies the base type’s contract.
+
+```text
+DampingStrategy
+    |
+    +-- ComfortStrategy
+    +-- SportStrategy
+```
+
+### Polymorphism
+
+The controller can use different strategies through one interface:
+
+```cpp
+const DampingStrategy& strategy;
+strategy.calculateCurrent(bumpIntensity);
+```
+
+The actual implementation may be Comfort, Sport, Track, or Off-Road.
+
+### Abstraction
+
+Expose what the controller needs while hiding hardware details.
+
+```cpp
+class ICoilDriver
+{
+public:
+    virtual CoilResult setCurrent(float amps) = 0;
+};
+```
+
+The controller does not need to know how PWM registers are configured.
+
+***
+
+## Error Model
+
+The system should not silently ignore failures.
+
+Example status types:
+
+```cpp
+enum class SensorStatus
+{
+    Valid,
+    Timeout,
+    InvalidValue,
+    HardwareFailure
+};
+```
+
+```cpp
+enum class CoilResult
+{
+    Success,
+    CurrentLimited,
+    OverTemperature,
+    OverCurrent,
+    HardwareFailure
+};
+```
+
+```cpp
+enum class LogResult
+{
+    Stored,
+    StorageFull,
+    WriteFailure
+};
+```
+
+The controller should decide how the complete system responds.
+
+Example:
+
+```text
+Sensor timeout
+    -> Set coil current to safe value
+    -> Record failure
+    -> Enter degraded mode
+
+Coil overtemperature
+    -> Disable or reduce current
+    -> Record temperature
+    -> Notify safety logic
+
+Telemetry storage full
+    -> Continue safety control
+    -> Drop or compress noncritical logs
+    -> Record storage error if possible
+```
+
+Safety-critical behavior should not depend entirely on successful telemetry logging.
+
+***
+
+## Memory Rules
+
+For every object, ask:
+
+```text
+Where is it stored?
+Who owns it?
+Who destroys it?
+How long does it live?
+Can it leak?
+Can it become dangling?
+Can multiple threads access it?
+```
+
+### Preferred initial ownership
 
 ```cpp
 class SuspensionController
 {
 private:
     SensorReader sensorReader_;
-    DampingCalculator dampingCalculator_;
-    CoilController coilController_;
-    TelemetryLogger telemetryLogger_;
+    DampingCalculator calculator_;
+    CoilDriver coilDriver_;
+    TelemetryLogger logger_;
 };
 ```
 
-This means:
+This uses direct composition.
+
+Advantages:
+
+- No `new`.
+- No `delete`.
+- Clear lifetime.
+- Predictable memory.
+- No ownership ambiguity.
+
+### Non-owning dependency references
+
+```cpp
+class SuspensionController
+{
+public:
+    SuspensionController(IAccelerometer& sensor,
+                         ICoilDriver& coil,
+                         ITelemetryLogger& logger);
+
+private:
+    IAccelerometer& sensor_;
+    ICoilDriver& coil_;
+    ITelemetryLogger& logger_;
+};
+```
+
+The controller uses these objects but does not destroy them.
+
+The caller must ensure they remain alive.
+
+***
+
+## Performance Rules
+
+The control loop may have a deadline:
 
 ```text
+Complete control decision within 1 ms
+```
+
+For each operation, consider:
+
+- Time complexity.
+- Space complexity.
+- Dynamic allocation.
+- Copying.
+- Cache behavior.
+- Interrupt interference.
+- Lock contention.
+- Hardware latency.
+- Logging latency.
+
+The main control path should usually avoid:
+
+- Unbounded loops.
+- Dynamic allocation.
+- Large string creation.
+- Blocking storage operations.
+- Long mutex waits.
+- Unpredictable I/O.
+
+Telemetry can often be placed into a fixed-size buffer and written later.
+
+***
+
+## Concurrency Model
+
+A possible system has:
+
+```text
+Sensor task      -> Reads acceleration
+Control task     -> Calculates damping
+Actuator task    -> Applies coil current
+Logger task      -> Stores telemetry
+```
+
+Shared data creates risks:
+
+```cpp
+float bumpIntensity;
+```
+
+If one task writes while another reads, the program may contain a data race.
+
+Possible solutions:
+
+- Atomic values for simple data.
+- Mutexes for grouped data.
+- Message queues.
+- Double buffering.
+- Fixed-size event queues.
+- Processing data only at control-cycle boundaries.
+
+The design must consider what happens if a sensor update arrives while the calculator is using the previous value.
+
+***
+
+## Testing Strategy
+
+### Unit tests
+
+Test one component at a time:
+
+```text
+DampingCalculator
+CoilDriver safety limits
+Sensor validation
+Telemetry formatting
+Mode selection
+```
+
+### Integration tests
+
+Test a group of components:
+
+```text
+SensorReader
+    ->
 SuspensionController
-        │
-        ├── owns SensorReader
-        ├── owns DampingCalculator
-        ├── owns CoilController
-        └── owns TelemetryLogger
+    ->
+FakeCoilDriver
 ```
 
-No:
+### Hardware-in-the-loop tests
 
-```cpp
-new
+Use actual hardware interfaces with controlled test inputs.
+
+### Fault-injection tests
+
+Simulate:
+
+```text
+Sensor timeout
+Invalid acceleration
+Coil overheating
+Overcurrent
+Logger storage full
+Mode change during operation
 ```
 
-or:
+### Safety tests
 
-```cpp
-delete
+Verify that dangerous conditions produce safe actuator behavior:
+
+```text
+Overtemperature -> current becomes zero
+Invalid sensor   -> no unsafe current command
+Overcurrent      -> output is limited
 ```
 
-is required.
+***
 
-This provides predictable object lifetime.
+## Planned Learning Phases
 
-When the `SuspensionController` is constructed, its member objects are constructed.
+### Phase 1: SOLID Principles
 
-When the controller is destroyed, its member objects are automatically destroyed.
+Completed topics:
 
----
+- Single Responsibility Principle.
+- Open/Closed Principle.
+- Liskov Substitution Principle.
+- Interface Segregation Principle.
+- Dependency Inversion Principle.
 
-# 13. Memory Considerations
+### Phase 2: Four OOP Pillars
 
-This design intentionally avoids dynamic allocation.
+Next topics:
 
-There is no:
+1. Encapsulation.
+2. Inheritance.
+3. Polymorphism.
+4. Abstraction.
 
-```cpp
-new
-delete
-malloc
-free
+### Phase 3: Strings and Memory
+
+Topics:
+
+- `std::string`.
+- `std::string_view`.
+- `char[]`.
+- `const char*`.
+- `c_str()`.
+- Lifetime.
+- Stack and heap memory.
+
+### Phase 4: Error Handling
+
+Topics:
+
+- Error codes.
+- Exceptions.
+- `std::optional`.
+- `std::expected`.
+- `noexcept`.
+- RAII.
+- Embedded exception decisions.
+
+### Phase 5: Standard Library Collections
+
+Topics:
+
+```text
+std::vector
+std::array
+std::list
+std::set
+std::unordered_set
+std::map
+std::unordered_map
+std::queue
+std::priority_queue
 ```
 
-in the current implementation.
+Each will be connected to suspension data or events.
 
-The components are stored directly as members.
+### Phase 6: Equality and Hashing
 
-This is useful in embedded systems because dynamic allocation can introduce:
-
-* Fragmentation.
-* Less predictable allocation time.
-* Lifetime-management complexity.
-* Failure scenarios when memory is exhausted.
-
-The current design uses small value objects such as:
+Use:
 
 ```cpp
-SensorData
-DampingCommand
 TelemetryRecord
 ```
 
-These contain only a few `float` values.
+Study:
 
----
+- `operator==`.
+- `std::hash`.
+- Hash consistency.
+- `unordered_map`.
+- `unordered_set`.
 
-# 14. Runtime Complexity
+### Phase 7: Templates
 
-The calculations are constant time.
-
-For example:
-
-```cpp
-force = accelerationG * forcePerG;
-current = force / forcePerAmp;
-```
-
-These are:
-
-```text
-O(1)
-```
-
-The control sequence is also fixed:
-
-```text
-Read
- ↓
-Calculate
- ↓
-Apply
- ↓
-Log
-```
-
-There are no loops over large collections or dynamically growing containers in the current implementation.
-
-For embedded control software, predictable execution is often important.
-
----
-
-# 15. Hardware Isolation
-
-One of the important architectural decisions is that hardware access should remain isolated.
-
-Currently:
-
-```text
-SensorReader
-    ↓
-Sensor hardware
-
-CoilController
-    ↓
-Coil/PWM/DAC hardware
-```
-
-while:
-
-```text
-DampingCalculator
-```
-
-operates only on normal C++ data.
-
-This means the damping algorithm can be tested on a desktop computer without requiring:
-
-```text
-Vehicle
-Accelerometer
-MR-fluid damper
-PWM hardware
-Microcontroller
-```
-
-This is especially useful during development.
-
----
-
-# 16. Why SRP Improves Testing
-
-Because responsibilities are separated, each component can be tested independently.
-
-For example:
+Build:
 
 ```cpp
-DampingCalculator calculator;
-
-SensorData input{5.0f};
-
-DampingCommand result =
-    calculator.calculate(input);
+template<typename T>
+class CircularBuffer;
 ```
 
-Expected:
-
-```text
-Force = 5.0 × 100
-      = 500 N
-
-Current = 500 / 1000
-        = 0.5 A
-```
-
-The test does not need physical hardware.
-
-Similarly, the coil controller can be tested independently.
-
-For:
-
-```text
-Requested current = 10 A
-Maximum current   = 3 A
-```
-
-the expected result is:
-
-```text
-Actual current = 3 A
-```
-
----
-
-# 17. Compile the Project
-
-From the project directory:
-
-```bash
-cd ~/MR_Suspension
-```
-
-Compile:
-
-```bash
-g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp -o suspension
-```
-
-Run:
-
-```bash
-./suspension
-```
-
-Expected output:
-
-```text
-Suspension control cycle completed.
-```
-
----
-
-# 18. Compiler Flags
-
-The project uses:
-
-```text
--std=c++17
-```
-
-This tells the compiler to use the C++17 language standard.
-
-```text
--Wall
-```
-
-Enables common compiler warnings.
-
-```text
--Wextra
-```
-
-Enables additional warnings.
-
-```text
--Iinclude
-```
-
-Tells the compiler to search the `include/` directory for header files.
-
-```text
--o suspension
-```
-
-Names the resulting executable:
-
-```text
-suspension
-```
-
----
-
-# 19. Common C++ Errors Encountered During Development
-
-This project also demonstrates several common beginner C++ errors.
-
-## Missing `#` in include
-
-Incorrect:
+Use it for:
 
 ```cpp
-include "SensorReader.hpp"
+CircularBuffer<float>
+CircularBuffer<TelemetryRecord>
 ```
 
-Correct:
+### Phase 8: Modern C++
+
+Study:
+
+```text
+auto
+const
+constexpr
+enum class
+range-based for
+lambda
+smart pointers
+move semantics
+RAII
+nullptr
+structured bindings
+optional
+variant
+string_view
+```
+
+Each feature will be introduced through a real engineering problem.
+
+### Phase 9: Smart Pointers and RAII
+
+Study:
+
+```text
+std::unique_ptr
+std::shared_ptr
+std::weak_ptr
+```
+
+Focus on:
+
+- Ownership.
+- Lifetime.
+- Leaks.
+- Double deletion.
+- Dangling pointers.
+- Resource cleanup.
+
+### Phase 10: Move Semantics
+
+Use a large telemetry report to compare:
+
+```text
+Copying
+Moving
+Ownership transfer
+Moved-from state
+```
+
+### Phase 11: Multithreading
+
+Study:
+
+```text
+Race conditions
+Mutex
+lock_guard
+unique_lock
+Atomic
+condition_variable
+Deadlock
+Thread-safe queues
+```
+
+### Phase 12: Embedded Memory
+
+Study:
+
+```text
+Stack
+Heap
+Static storage
+Alignment
+Padding
+sizeof
+Object lifetime
+```
+
+### Phase 13: Performance
+
+Analyze:
+
+```text
+10,000 sensor readings
+Peak bump
+Average bump
+1 ms control deadline
+Container choice
+Cache behavior
+Allocation behavior
+```
+
+### Phase 14: Debugging
+
+Investigate:
+
+```text
+Dangling pointer
+Memory leak
+Double delete
+Race condition
+Deadlock
+Incorrect virtual destructor
+Iterator invalidation
+Shallow copy
+Incorrect move constructor
+Use-after-move
+```
+
+### Phase 15: Design Patterns
+
+Use only when a real problem requires them:
+
+```text
+Strategy
+Factory
+Observer
+Builder
+State
+```
+
+### Phase 16: Mini Project
+
+Build the embedded MR-fluid suspension controller with:
+
+- Sensor input.
+- Bump detection.
+- Frequency estimation.
+- Driving modes.
+- Damping algorithms.
+- Coil-current control.
+- Temperature protection.
+- Telemetry.
+- Sensor timeout handling.
+- Actuator failure handling.
+- Dynamic mode switching.
+- Concurrent events.
+- Unit testing.
+
+***
+
+## Project Design Principles
+
+Keep these principles visible while studying:
+
+1. Prefer simple designs first.
+2. Separate hardware from algorithms.
+3. Make ownership explicit.
+4. Avoid unnecessary dynamic allocation.
+5. Validate data at system boundaries.
+6. Keep safety rules close to the hardware they protect.
+7. Make failures visible.
+8. Avoid hidden global state.
+9. Measure performance on the target hardware.
+10. Design for testing from the beginning.
+11. Use inheritance only when substitution is valid.
+12. Prefer composition when behavior is assembled from components.
+13. Do not use a feature merely because C++ provides it.
+14. Optimize only after identifying a real bottleneck.
+15. Treat timing and memory as functional requirements.
+
+***
+
+## Current Architecture
+
+The current conceptual architecture is:
+
+```text
+                 +----------------------+
+                 | SuspensionController|
+                 +----------+-----------+
+                            |
+       +--------------------+--------------------+
+       |                    |                    |
+       v                    v                    v
+IAccelerometer       DampingStrategy       ICoilDriver
+       |                    |                    |
+       v                    v                    v
+Real Sensor       Comfort/Sport/Track      PWM Driver
+Fake Sensor       Off-Road Strategy        Fake Driver
+
+                            |
+                            v
+                    ITelemetryLogger
+                            |
+                            v
+                    Memory Logger
+                    Fake Logger
+```
+
+The controller coordinates the system.
+
+The interfaces isolate hardware.
+
+The strategies isolate changing damping behavior.
+
+The concrete implementations can be replaced for testing.
+
+***
+
+## Study Checklist
+
+Before moving to the next topic, you should understand:
+
+- Why one large `SuspensionSystem` class becomes difficult.
+- Why responsibilities should be separated.
+- Why new damping modes can use strategies.
+- Why derived classes must honor base-class expectations.
+- Why giant interfaces force meaningless methods.
+- Why high-level code should depend on abstractions.
+- Who owns each object.
+- Whether a pointer or reference is owning or non-owning.
+- How to test without real high-voltage hardware.
+- Why control logic and telemetry storage may need different timing behavior.
+
+# Next Topic
+
+The next topic is **Encapsulation**.
+
+We will start with this engineering problem:
 
 ```cpp
-#include "SensorReader.hpp"
+class MagnetCoil
+{
+public:
+    float currentAmps;
+};
 ```
 
----
-
-## Case sensitivity
-
-C++ is case-sensitive.
-
-These are different:
+Any part of the suspension software could do this:
 
 ```cpp
-sensorReader_
-SensorReader_
+coil.currentAmps = 500.0f;
 ```
 
-The project uses:
+That could command an unsafe current while the coil is already overheating.
 
-```cpp
-SensorReader sensorReader_;
-```
-
-The class name begins with uppercase.
-
-The object/member name begins with lowercase.
-
----
-
-## Type name versus variable name
-
-Avoid:
-
-```cpp
-SensorData SensorData;
-```
-
-Prefer:
-
-```cpp
-SensorData sensorData;
-```
-
-This makes the distinction between the type and object clearer.
-
----
-
-## Typographical errors
-
-Incorrect:
-
-```cpp
-command.coilcurrentAmps
-```
-
-Correct:
-
-```cpp
-command.coilCurrentAmps
-```
-
-Likewise:
-
-```cpp
-maximumCurrentAmpsp
-```
-
-is incorrect.
-
-Correct:
-
-```cpp
-maximumCurrentAmps
-```
-
----
-
-# 20. Dependency Relationships
-
-The important dependencies are:
-
-```text
-SensorData
-    ↑
-SensorReader
-```
-
-```text
-SensorData + DampingCommand
-    ↑
-DampingCalculator
-```
-
-```text
-DampingCommand
-    ↑
-CoilController
-```
-
-```text
-TelemetryRecord
-    ↑
-TelemetryLogger
-```
-
-```text
-SensorReader
-DampingCalculator
-CoilController
-TelemetryLogger
-        ↑
-SuspensionController
-```
-
-This gives the project a clear dependency structure.
-
----
-
-# 21. What SRP Prevents
-
-Without SRP:
-
-```text
-SuspensionSystem
-│
-├── sensor hardware
-├── sensor validation
-├── damping mathematics
-├── coil control
-├── current safety
-├── temperature safety
-├── telemetry
-└── system coordination
-```
-
-This creates a large class with many reasons to change.
-
-With SRP:
-
-```text
-SensorReader
-     │
-     └── sensor responsibility
-
-DampingCalculator
-     │
-     └── calculation responsibility
-
-CoilController
-     │
-     └── actuator responsibility
-
-TelemetryLogger
-     │
-     └── logging responsibility
-
-SuspensionController
-     │
-     └── coordination responsibility
-```
-
----
-
-# 22. Why We Did Not Use Inheritance
-
-The project does not currently use:
-
-```cpp
-virtual
-inheritance
-interfaces
-abstract classes
-```
-
-SRP does not require inheritance.
-
-The goal is to first create clear responsibilities.
-
-More advanced abstractions can be introduced later when there is an actual design requirement.
-
----
-
-# 23. Why We Did Not Use Dynamic Allocation
-
-There is no need for:
-
-```cpp
-SensorReader* reader = new SensorReader;
-```
-
-The controller can simply own the object:
-
-```cpp
-SensorReader sensorReader_;
-```
-
-This gives automatic lifetime management.
-
-For a small embedded controller, this is often simpler and more predictable.
-
----
-
-# 24. Current Limitations
-
-This is an educational project, not production vehicle-control software.
-
-The current implementation uses:
-
-```text
-Simulated accelerometer
-Simplified damping equation
-Simplified coil model
-No real PWM/DAC
-No temperature sensor
-No fault-state machine
-No real-time scheduler
-No hardware abstraction layer
-No unit-testing framework yet
-```
-
-A real suspension controller would require considerably more engineering.
-
----
-
-# 25. Future Improvements
-
-Possible next steps include:
-
-## Testing
-
-Add unit tests for:
-
-```text
-SensorReader
-DampingCalculator
-CoilController
-TelemetryLogger
-```
-
-A testing framework such as GoogleTest could be introduced.
-
----
-
-## CMake
-
-Replace the manual compilation command:
-
-```bash
-g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp -o suspension
-```
-
-with a proper build system:
-
-```text
-CMake
-```
-
----
-
-## Dependency Inversion
-
-The next major architectural improvement is to introduce abstractions for hardware.
-
-For example:
-
-```text
-ISensor
-    ↑
-    ├── RealAccelerometer
-    └── FakeAccelerometer
-```
-
-and:
-
-```text
-ICoilDriver
-    ↑
-    ├── RealCoilDriver
-    └── FakeCoilDriver
-```
-
-This allows hardware implementations to be replaced during testing.
-
-This naturally leads toward the:
-
-```text
-Dependency Inversion Principle
-```
-
----
-
-# 26. Interview Explanation
-
-A concise interview answer:
-
-> The original suspension system class had multiple responsibilities: sensor acquisition, damping calculation, actuator control, and telemetry. These responsibilities change for different reasons, so I separated them into SensorReader, DampingCalculator, CoilController, and TelemetryLogger. A SuspensionController coordinates these components. This improves testability, reduces coupling, isolates hardware access, and makes requirement changes safer.
-
----
-
-# 27. Key Takeaways
-
-The most important concepts from this project are:
-
-```text
-1. SRP is about responsibility, not number of methods.
-
-2. Different reasons to change usually indicate different responsibilities.
-
-3. Controllers should coordinate rather than implement everything.
-
-4. Hardware access should be isolated.
-
-5. Mathematical logic should be testable without hardware.
-
-6. Prefer direct object ownership when dynamic allocation is unnecessary.
-
-7. Header files declare interfaces.
-
-8. Source files implement those interfaces.
-
-9. C++ is case-sensitive.
-
-10. Small responsibilities make testing and maintenance easier.
-```
-
----
-
-# 28. Architecture Summary
-
-The final architecture is:
-
-```text
-                    +----------------------+
-                    | SuspensionController |
-                    |----------------------|
-                    | Coordinate cycle     |
-                    +----------+-----------+
-                               |
-             +-----------------+-----------------+
-             |                 |                 |
-             v                 v                 v
-     +---------------+ +---------------+ +---------------+
-     | SensorReader  | |   Damping     | |     Coil      |
-     |               | |  Calculator   | |  Controller   |
-     +-------+-------+ +-------+-------+ +-------+-------+
-             |                 |                 |
-             v                 v                 v
-        SensorData       DampingCommand     Coil Current
-                                                  
-                               |
-                               v
-                       +---------------+
-                       | Telemetry     |
-                       | Logger        |
-                       +---------------+
-```
-
-The key idea is:
-
-```text
-Read → Calculate → Apply → Log
-```
-
-while each class remains responsible for its own part of the system.
-
-```
-```
+We will then protect the coil’s state using controlled operations, validation, and a clear interface.
