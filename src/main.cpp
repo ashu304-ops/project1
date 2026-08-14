@@ -1,14 +1,18 @@
 #include <iostream>
 
 #include "SuspensionController.hpp"
-
+#include "SnowStrategy.hpp"
+using namespace  std;
 int main()
 {
-    SuspensionController suspensionController;
+    SnowStrategy snowStrategy;
+
+    SuspensionController suspensionController(
+        snowStrategy);
 
     suspensionController.runControlCycle();
 
-    std::cout << "Suspension control cycle completed.\n";
+    cout << "Snow control cycle completed.\n";
 
     return 0;
 }

@@ -2,7 +2,7 @@
 
 #include "DampingStrategy.hpp"
 
-class DampingCalculator : public DampingStrategy
+class SportStrategy : public DampingStrategy
 {
 public:
     DampingCommand calculate(
