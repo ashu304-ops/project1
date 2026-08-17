@@ -1,19 +1,10 @@
 #include "DampingCalculator.hpp"
 
-DampingCommand DampingCalculator::calculate(
-    const SensorData& sensorData) const
-{
-    constexpr float forcePerG = 100.0f;
-    constexpr float forcePerAmp = 1000.0f;
+float DampingCalculator::calculateForceN(float accelG) const noexcept {
+    return accelG * 100.0f;
+}
 
-    const float force =
-        sensorData.accelerationG * forcePerG;
-
-    const float current =
-        force / forcePerAmp;
-
-    return DampingCommand{
-        force,
-        current
-    };
+DampingCommand DampingCalculator::calculate(const SensorData& sensorData) const {
+    const float force = calculateForceN(sensorData.accelerationG);
+    return DampingCommand{force, force / 1000.0f};
 }

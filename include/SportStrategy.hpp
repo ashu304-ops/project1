@@ -1,10 +1,9 @@
 #pragma once
 
-#include "DampingStrategy.hpp"
+#include "IDampingStrategy.hpp"
 
-class SportStrategy : public DampingStrategy
-{
+class SportStrategy : public IDampingStrategy {
 public:
-    DampingCommand calculate(
-        const SensorData& sensorData) const override;
+    float calculateForceN(float accelG) const noexcept override;
+    DampingCommand calculate(const SensorData& sensorData) const override;
 };

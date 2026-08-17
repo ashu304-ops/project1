@@ -1,13 +1,13 @@
+// include/ICoilDriver.hpp
 #pragma once
 
+#include "ErrorTypes.hpp"
 #include "DampingCommand.hpp"
 
-class ICoilDriver
-{
+class ICoilDriver {
 public:
-    virtual void apply(const DampingCommand& command) = 0;
-
-    virtual float current() const = 0;
-
     virtual ~ICoilDriver() = default;
+    virtual CoilResult setCurrent(float requestedCurrentAmps, float temperatureCelsius) noexcept = 0;
+    virtual ErrorCode apply(const DampingCommand& command) = 0;
+    virtual float current() const noexcept = 0;
 };

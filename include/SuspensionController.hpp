@@ -1,24 +1,35 @@
-#pragma once
+#ifndef SUSPENSION_CONTROLLER_HPP
+#define SUSPENSION_CONTROLLER_HPP
 
-#include "IAccelerometer.hpp"
-#include "DampingStrategy.hpp"
+#include <memory>
+#include "ISensorReader.hpp"
 #include "ICoilDriver.hpp"
 #include "ITelemetryLogger.hpp"
+#include "IDampingStrategy.hpp"
+#include "SignalFilter.hpp"
+#include "RingBuffer.hpp" // STL Containers & Templates
 
-class SuspensionController
-{
+class SuspensionController {
 public:
-    SuspensionController(
-        IAccelerometer& sensor,
-        DampingStrategy& dampingStrategy,
-        ICoilDriver& coilController,
-        ITelemetryLogger& telemetryLogger);
+    SuspensionController(ISensorReader& sensor, ICoilDriver& coil, ITelemetryLogger& logger) noexcept;
 
-    void runControlCycle();
+    void setStrategy(std::unique_ptr<IDampingStrategy> strategy) noexcept;
+    void runCycle(float ambientTempC) noexcept;
+    void enterSafeMode(SensorError error) noexcept;
+
+    // Fixed-capacity STL container for offline error telemetry analysis
+    [[nodiscard]] const RingBuffer<float, 32>& getRecentForceHistory() const noexcept {
+        return forceHistory_;
+    }
 
 private:
-    IAccelerometer& sensor_;
-    DampingStrategy& dampingStrategy_;
-    ICoilDriver& coilController_;
-    ITelemetryLogger& telemetryLogger_;
+    ISensorReader& sensor_;
+    ICoilDriver& coil_;
+    ITelemetryLogger& logger_;
+    
+    std::unique_ptr<IDampingStrategy> strategy_;
+    SignalFilter filter_;
+    RingBuffer<float, 32> forceHistory_{}; // Stack/inline allocated STL buffer
 };
+
+#endif // SUSPENSION_CONTROLLER_HPP

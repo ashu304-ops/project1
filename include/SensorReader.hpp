@@ -1,9 +1,21 @@
 #pragma once
 
-#include "IAccelerometer.hpp"
+#include "ISensorReader.hpp"
 
-class SensorReader : public IAccelerometer
-{
+class SensorReader : public ISensorReader {
 public:
-    SensorData read() override;
+    explicit SensorReader(float initialG = 0.0f) noexcept;
+
+    SensorReadResult read() noexcept override;
+
+    // Test Injection Helpers
+    void injectHardwareReading(float gForce) noexcept;
+    void injectTimeout(bool timedOut) noexcept;
+
+private:
+    float readHardware() const noexcept;
+    bool communicationTimedOut() const noexcept;
+
+    float currentG_{0.0f};
+    bool timedOut_{false};
 };

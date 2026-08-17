@@ -1,6 +1,5 @@
 #pragma once
 
-struct SensorData
-{
+struct SensorData {
     float accelerationG{0.0f};
 };

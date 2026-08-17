@@ -1,10 +1,10 @@
-// include/CoilController.hpp
+// include/CoilDriver.hpp
 #pragma once
 
 #include "ICoilDriver.hpp"
 #include "DampingCommand.hpp"
 
-class CoilController : public ICoilDriver {
+class CoilDriver : public ICoilDriver {
 public:
     CoilResult setCurrent(float requestedCurrentAmps, float temperatureCelsius) noexcept override;
     ErrorCode apply(const DampingCommand& command) override;
