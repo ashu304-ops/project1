@@ -1,16 +1,12 @@
-# Build directories and binaries
-/build/
-/bin/
-project1
-unit_tests
+# Build outputs
+build/
 
-# Object files and compiled artifacts
-*.o
-*.a
-*.so
-
-# Editor & OS artifacts
+# IDE specific files
 .vscode/
 .idea/
 *.swp
-.DS_Store
+*.swo
+
+# Core dumps and logs
+core.*
+*.log
