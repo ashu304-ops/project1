@@ -26,3 +26,8 @@ enable_testing()
 add_executable(unit_tests tests/test_main.cpp ${PROJECT_SOURCES})
 target_include_directories(unit_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_test(NAME unit_tests COMMAND unit_tests)
+
+# Add IoT Demo Test Target
+add_executable(iot_test tests/test_iot.cpp)
+target_include_directories(iot_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_test(NAME iot_test COMMAND iot_test)
